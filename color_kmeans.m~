@@ -1,0 +1,15 @@
+img = imread('data/imgs_subset/w_0.jpg');
+resized = imresize(img, 0.1);
+resized = rgb2hsv(resized);
+pixel_matrix = reshape(resized,[size(resized,1)*size(resized,2), 3]);
+[idx, C] = kmeans(pixel_matrix, 3);
+centroid_image = reshape(idx, [size(resized, 1), size(resized, 2)]);
+clustered_image = zeros(size(resized));
+
+for i=1:size(centroid_image,1)
+    for j=1:size(centroid_image,2)
+        clustered_image(i,j,:) = C(centroid_image(i,j));
+    end
+end
+imshow
+C(:,1) = C(:,1)*360;
