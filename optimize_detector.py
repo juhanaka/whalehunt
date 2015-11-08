@@ -18,12 +18,10 @@ def vizualize_head(img, boxes):
     print scale
     window_width = int(img.shape[1] * scale)
     window_height = int(img.shape[0] * scale)
-    print window_width
-    print window_height
-    print img.shape
-    cv2.namedWindow('dst_rt', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('dst_rt', 1080, 720)
-    cv2.imshow('dst_rt',img)
+    cv2.namedWindow('window', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('window', window_width, window_height)
+    tmp = cv2.resize(img,(window_width,window_height));
+    cv2.imshow('window',tmp)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -40,9 +38,13 @@ def get_performance(classifier, test_path_label):
             path_img = line[0]
             gt_box = [int(x) for x in line[2].split(' ')]
             # Read image and detect the whale
+            path_parts = path_img.split('/')
+            path_img = '/'.join(path_parts[1:])
             img = cv2.imread(path_img)
+            print path_img
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            pred_boxes = classifier.detectMultiScale(gray)#,
+            pred_boxes = classifier.detectMultiScale(gray)
+            print 'finished detecting'#,
              #scale_factor = SCALE_FACTOR, min_size = MIN_SIZE)
             vizualize_head(img, pred_boxes)
             matches += compare_boxes(gt_box,pred_boxes)
@@ -52,8 +54,8 @@ def get_performance(classifier, test_path_label):
 
 
 
-classifier = cv2.CascadeClassifier('data/haarcascade_v2/cascade.xml')
-test_path_label = ('labels/crossvalidation_labels.tsv')
+classifier = cv2.CascadeClassifier('data/haarcascade_south/cascade.xml')
+test_path_label = ('labels/labels_south.tsv')
 get_performance(classifier,test_path_label)
 
 
