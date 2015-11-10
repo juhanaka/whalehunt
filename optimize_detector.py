@@ -5,6 +5,7 @@ SCALE_FACTOR = 1
 MIN_SIZE = (30, 30)
 
 def compare_boxes(gt_box, pred_box):
+    
     return 0
 
 def vizualize_head(img, boxes):
@@ -54,7 +55,7 @@ def get_performance(classifier, test_path_label):
 
 
 
-classifier = cv2.CascadeClassifier('data/haarcascade_south/cascade.xml')
+classifier = cv2.CascadeClassifier('data/haarcascade_south_FA1/cascade.xml')
 test_path_label = ('labels/labels_south.tsv')
 get_performance(classifier,test_path_label)
 
