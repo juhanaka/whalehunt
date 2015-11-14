@@ -1,5 +1,5 @@
-POS_PATH = '/Users/juhanakangaspunta/stanford/whales/rois_0-249.mat';
-NEG_PATH = '/Users/juhanakangaspunta/stanford/whales/data/negatives';
+POS_PATH = '/Users/Youssef/Cours/Fall2016/EE368/Midterm/whalehunt/labels/south_labels.mat';
+NEG_PATH = '/Users/Youssef/Cours/Fall2016/EE368/Midterm/whalehunt/data/negatives';
 FALSE_ALARM = 0.5;
 NUM_STAGES = 15;
 FEATURE_TYPE = 'LBP';

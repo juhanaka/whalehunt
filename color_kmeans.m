@@ -6,12 +6,12 @@ SCALE = 0.3;
 pathnames = dir(SRC_FOLDER);
 
 for i=1:length(pathnames)
-    if i < 3
+    pathname = pathnames(i).name
+    if pathname(1) == '.'
         continue
     end
-    pathname = pathnames(i).name
-    img = imread(strcat(TEST_PATH, '/', pathname));
- 
+    
+    img = imread(strcat(SRC_FOLDER, '/', pathname));
     resized = imresize(img, SCALE);
     hsv = rgb2hsv(resized);
 %     resized = im2double(applycform(resized,cform));
