@@ -3,6 +3,7 @@ import cv2
 
 SCALE_FACTOR = 1
 THRESHOLD_SUCCESS = .4
+THRESHOLD_VALID_BOX = .5
 
 '''
 Compare two boxes: return (B1 AND B2) / (B1 OR B2) 
@@ -29,14 +30,18 @@ def compare_boxes(gt_box, pred_box):
 '''
 Checks if box aligns with the K-means mask
 '''
-def valid_box(box, ref_image):
-    mask_img = cv2.imread(path_img)
+def valid_box(box, mask_image_path):
+    mask_img = cv2.imread(mask_image_path)
+    print mask_image_path
+    print mask_img
+    cv2.imshow(mask_img)
+    cv2.waitKey(0)
     box_im = numpy.zeros(mask_img.shape)
     (x,y,w,h) = box
     box_im[x:x+w, y:y+h] = 1
     intersection_pixels = sum(numpy.multiply(mask_img,box_im))
     union_pixels = sum(numpy.divide(numpy.multiply(mask_img,box_im),2))
-    return intersection_pixels/float(union_pixels)
+    return intersection_pixels/float(h*w) > THRESHOLD_VALID_BOX
 
 '''
 Get overall precision of our model for the best bounding box
@@ -54,10 +59,13 @@ def get_precision(gt_box, boxes):
     else:
         return 0
 
-def vizualize_head(img, boxes, path_img):
+def vizualize_head(img, boxes, path_img, mask_image_path):
     for i,box in enumerate(boxes):
         (x, y, w, h) = box
-        cv2.rectangle(img, (x,y),(x+w,y+h),(255,0,0),2)
+        if valid_box(box, mask_image_path):
+            cv2.rectangle(img, (x,y),(x+w,y+h),(0,255,0),2)
+        else:
+            cv2.rectangle(img, (x,y),(x+w,y+h),(255,0,0),2)
         cv2.putText(img, str(i), (x,y),cv2.FONT_HERSHEY_PLAIN, 6, 10, thickness=5)
         print i,'\t' , path_img, '\t' , x, ' ',y,' ',w,' ',h
     screen_res = 1280, 720
@@ -84,6 +92,7 @@ def get_performance(classifier, test_path_label):
         for i, line in enumerate(f):
             line = line.strip().split('\t')
             path_img = line[0]
+            mask_image_path = 'data/kmeans_imgs/'+path_img.strip().split('/')[-1]
             gt_box = [int(x) for x in line[2].split(' ')]
             (x_gt, y_gt, w_gt, h_gt) = gt_box
             # Read image and detect the whale
@@ -97,7 +106,7 @@ def get_performance(classifier, test_path_label):
             print 'precision ', current_match
             matches += current_match
             cv2.rectangle(img, (x_gt,y_gt),(x_gt+w_gt,y_gt+h_gt),(0,0,255),2)
-            vizualize_head(img, pred_boxes, path_img)
+            vizualize_head(img, pred_boxes, path_img, mask_image_path)
             tests += 1.0
     # return precision
     return matches/tests
