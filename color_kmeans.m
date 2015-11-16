@@ -6,15 +6,16 @@ IMAGES_RNG = 1:1000;
 IMG_PREFIX = 'w_';
 IMG_POSTFIX = '.jpg';
 
-for img_idx=IMAGES_RNG
-    img = imread(strcat(SRC_FOLDER, '/', IMG_PREFIX, int2str(img_idx), IMG_POSTFIX));
+for i=IMAGES_RNG
+    img_name = strcat(IMG_PREFIX, int2str(i), IMG_POSTFIX);
+    img = imread(strcat(SRC_FOLDER, '/', img_name));
     resized = imresize(img, SCALE);
     hsv = rgb2hsv(resized);
     pixel_matrix = reshape(hsv,[size(hsv,1)*size(hsv,2), 3]);
     [idx, C] = kmeans(pixel_matrix, N_CLUSTERS);
     background_cluster = mode(idx);
     centroid_image = reshape(idx, [size(hsv, 1), size(hsv, 2)]);
-    clustered_image = zeros(size(hsv)); 
+    clustered_image = zeros(size(hsv));
 
     for i=1:size(centroid_image,1)
         for j=1:size(centroid_image,2)
@@ -36,5 +37,5 @@ for img_idx=IMAGES_RNG
     mask = imdilate(mask, ones(20,20));
     mask = imresize(mask, 1/SCALE);
     mask = mask(1:size(img, 1),1:size(img,2));
-    imwrite(mask, strcat(DST_FOLDER, '/', IMG_PREFIX, int2str(img_idx), IMG_POSTFIX));
+    imwrite(mask, strcat(DST_FOLDER, '/', img_name));
 end
