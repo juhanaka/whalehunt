@@ -1,23 +1,15 @@
-SRC_FOLDER = 'data/imgs_subset';
+SRC_FOLDER = 'data/imgs';
 DST_FOLDER = 'data/kmeans_imgs';
 N_CLUSTERS = 3;
 SCALE = 0.3;
+IMAGES_RNG = 1:1000;
+IMG_PREFIX = 'w_';
+IMG_POSTFIX = '.jpg';
 
-pathnames = dir(SRC_FOLDER);
-
-for i=1:length(pathnames)
-    if i < 3
-        continue
-    end
-    pathname = pathnames(i).name
-    img = imread(strcat(TEST_PATH, '/', pathname));
- 
+for i=IMAGES_RNG
+    img = imread(strcat(SRC_FOLDER, '/', IMG_PREFIX, int2str(i), IMG_POSTFIX));
     resized = imresize(img, SCALE);
     hsv = rgb2hsv(resized);
-%     resized = im2double(applycform(resized,cform));
-%     imshow(resized(:,:,2));
-%     k = waitforbuttonpress;
-    
     pixel_matrix = reshape(hsv,[size(hsv,1)*size(hsv,2), 3]);
     [idx, C] = kmeans(pixel_matrix, N_CLUSTERS);
     background_cluster = mode(idx);
@@ -28,10 +20,8 @@ for i=1:length(pathnames)
         for j=1:size(centroid_image,2)
             if centroid_image(i,j) == background_cluster
                 value = [0,0,0];
-%                 value = C(centroid_image(i,j),:);
             else
                 value = [1,0,1];
-%                 value = C(centroid_image(i,j),:);
             end
             clustered_image(i,j,:) = value;
         end
@@ -46,6 +36,5 @@ for i=1:length(pathnames)
     mask = imdilate(mask, ones(20,20));
     mask = imresize(mask, 1/SCALE);
     mask = mask(1:size(img, 1),1:size(img,2));
-    result = uint8(repmat(mask, 1,1,3) .* double(img));
-    imwrite(result, strcat(DST_FOLDER, '/', pathname));
+    imwrite(mask, strcat(DST_FOLDER, '/', pathname));
 end
