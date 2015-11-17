@@ -3,7 +3,7 @@ import cv2
 
 SCALE_FACTOR = 1
 THRESHOLD_SUCCESS = .4
-THRESHOLD_VALID_BOX = .5
+THRESHOLD_VALID_BOX = .25
 
 '''
 Compare two boxes: return (B1 AND B2) / (B1 OR B2) 
@@ -31,15 +31,28 @@ def compare_boxes(gt_box, pred_box):
 Checks if box aligns with the K-means mask
 '''
 def valid_box(box, mask_image_path):
-    mask_img = cv2.imread(mask_image_path)
-    print mask_image_path
-    print mask_img
-    cv2.imshow(mask_img)
-    cv2.waitKey(0)
+    mask_img_or = cv2.imread(mask_image_path, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+    ret, mask_img = cv2.threshold(mask_img_or,127,1,cv2.THRESH_BINARY)
+    
+    #print max(mask_img.reshape(mask_img.size,1))
+    
+    cv2.namedWindow('mask', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('mask', 1080, 720)
+    mask_img_res = cv2.resize(mask_img,(1080,720));
+    cv2.imshow('mask',numpy.multiply(mask_img_res,255))
+    
     box_im = numpy.zeros(mask_img.shape)
     (x,y,w,h) = box
-    box_im[x:x+w, y:y+h] = 1
-    intersection_pixels = sum(numpy.multiply(mask_img,box_im))
+    box_im[y:y+h,x:x+w] = 1
+    '''
+    cv2.namedWindow('box', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('box', 1080, 720)
+    mask_img_res = cv2.resize(box_im,(1080,720));
+    cv2.imshow('box',mask_img_res)
+    cv2.waitKey(0)
+    '''
+    intersection_pixels = sum(sum(numpy.multiply(mask_img,box_im)))
+    print intersection_pixels/float(h*w)
     union_pixels = sum(numpy.divide(numpy.multiply(mask_img,box_im),2))
     return intersection_pixels/float(h*w) > THRESHOLD_VALID_BOX
 
@@ -63,9 +76,9 @@ def vizualize_head(img, boxes, path_img, mask_image_path):
     for i,box in enumerate(boxes):
         (x, y, w, h) = box
         if valid_box(box, mask_image_path):
-            cv2.rectangle(img, (x,y),(x+w,y+h),(0,255,0),2)
-        else:
             cv2.rectangle(img, (x,y),(x+w,y+h),(255,0,0),2)
+        else:
+            cv2.rectangle(img, (x,y),(x+w,y+h),(0,255,0),2)
         cv2.putText(img, str(i), (x,y),cv2.FONT_HERSHEY_PLAIN, 6, 10, thickness=5)
         print i,'\t' , path_img, '\t' , x, ' ',y,' ',w,' ',h
     screen_res = 1280, 720
@@ -101,7 +114,7 @@ def get_performance(classifier, test_path_label):
             img = cv2.imread(path_img)
             print path_img
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            pred_boxes = classifier.detectMultiScale(gray, minSize = (200,200))#,
+            pred_boxes = classifier.detectMultiScale(gray, minSize = (200,200), maxSize = (700,700))#,
             current_match = get_precision(gt_box,pred_boxes)
             print 'precision ', current_match
             matches += current_match
