@@ -15,7 +15,7 @@ for i=IMAGES_RNG
     [idx, C] = kmeans(pixel_matrix, N_CLUSTERS);
     background_cluster = mode(idx);
     centroid_image = reshape(idx, [size(hsv, 1), size(hsv, 2)]);
-    clustered_image = zeros(size(hsv)); 
+    clustered_image = zeros(size(hsv));
 
     for i=1:size(centroid_image,1)
         for j=1:size(centroid_image,2)
