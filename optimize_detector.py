@@ -35,12 +35,12 @@ def valid_box(box, mask_image_path):
     ret, mask_img = cv2.threshold(mask_img_or,127,1,cv2.THRESH_BINARY)
     
     #print max(mask_img.reshape(mask_img.size,1))
-    
+    '''
     cv2.namedWindow('mask', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('mask', 1080, 720)
     mask_img_res = cv2.resize(mask_img,(1080,720));
     cv2.imshow('mask',numpy.multiply(mask_img_res,255))
-    
+    '''
     box_im = numpy.zeros(mask_img.shape)
     (x,y,w,h) = box
     box_im[y:y+h,x:x+w] = 1
@@ -52,8 +52,6 @@ def valid_box(box, mask_image_path):
     cv2.waitKey(0)
     '''
     intersection_pixels = sum(sum(numpy.multiply(mask_img,box_im)))
-    print intersection_pixels/float(h*w)
-    union_pixels = sum(numpy.divide(numpy.multiply(mask_img,box_im),2))
     return intersection_pixels/float(h*w) > THRESHOLD_VALID_BOX
 
 '''
@@ -73,13 +71,21 @@ def get_precision(gt_box, boxes):
         return 0
 
 def vizualize_head(img, boxes, path_img, mask_image_path):
+    k = 1
     for i,box in enumerate(boxes):
         (x, y, w, h) = box
-        if valid_box(box, mask_image_path):
-            cv2.rectangle(img, (x,y),(x+w,y+h),(255,0,0),2)
-        else:
-            cv2.rectangle(img, (x,y),(x+w,y+h),(0,255,0),2)
-        cv2.putText(img, str(i), (x,y),cv2.FONT_HERSHEY_PLAIN, 6, 10, thickness=5)
+        #if valid_box(box, mask_image_path):
+        cv2.rectangle(img, (x,y),(x+w,y+h),(0,0,255),10)
+        # Create cropped image from box
+        current_output_image = img[y:y+h, x:x+w]
+        original_img_name = path_img.split('/')[-1]
+        current_output_name = original_img_name.split('.')[0] + '_' + str(k) +'.png'
+        current_output_path = 'data/heads/'+current_output_name
+        cv2.imwrite(current_output_path, current_output_image)
+        k += 1
+        #else:
+            #cv2.rectangle(img, (x,y),(x+w,y+h),(0,255,0),2)
+        #cv2.putText(img, str(i), (x,y),cv2.FONT_HERSHEY_PLAIN, 6, 10, thickness=5)
         print i,'\t' , path_img, '\t' , x, ' ',y,' ',w,' ',h
     screen_res = 1280, 720
     scale_width = screen_res[0] / float(img.shape[1])
@@ -90,8 +96,8 @@ def vizualize_head(img, boxes, path_img, mask_image_path):
     cv2.namedWindow('window', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('window', window_width, window_height)
     tmp = cv2.resize(img,(window_width,window_height));
-    cv2.imshow('window',tmp)
-    cv2.waitKey(0)
+    #cv2.imshow('window',tmp)
+    #cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 def get_performance(classifier, test_path_label):
@@ -101,8 +107,11 @@ def get_performance(classifier, test_path_label):
     '''
     matches = 0
     tests = 0.0
+    correct_mask = 0
     with open(test_path_label) as f:
         for i, line in enumerate(f):
+            if i > 500:
+                break
             line = line.strip().split('\t')
             path_img = line[0]
             mask_image_path = 'data/kmeans_imgs/'+path_img.strip().split('/')[-1]
@@ -118,17 +127,21 @@ def get_performance(classifier, test_path_label):
             current_match = get_precision(gt_box,pred_boxes)
             print 'precision ', current_match
             matches += current_match
-            cv2.rectangle(img, (x_gt,y_gt),(x_gt+w_gt,y_gt+h_gt),(0,0,255),2)
+            #cv2.rectangle(img, (x_gt,y_gt),(x_gt+w_gt,y_gt+h_gt),(0,0,255),2)
+
+            # ESTIMATE PROBABILITY OF CORRECT MASK
+            if valid_box(gt_box,mask_image_path):
+                correct_mask += 1
+
             vizualize_head(img, pred_boxes, path_img, mask_image_path)
             tests += 1.0
+    print correct_mask/tests
     # return precision
     return matches/tests
 
-
-
-classifier = cv2.CascadeClassifier('data/haarcascade_south_FA35_with_hardneg/cascade.xml')
+south_classifier = cv2.CascadeClassifier('data/haarcascade_south_FA35_with_hardneg/cascade.xml')
 test_path_label = ('labels/labels_south.tsv')
-precision = get_performance(classifier,test_path_label)
+precision = get_performance(south_classifier,test_path_label)
 print precision
 
 

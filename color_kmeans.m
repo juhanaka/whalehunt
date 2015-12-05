@@ -2,7 +2,7 @@ SRC_FOLDER = 'data/imgs';
 DST_FOLDER = 'data/kmeans_imgs';
 N_CLUSTERS = 3;
 SCALE = 0.3;
-IMAGES_RNG = 1:1000;
+IMAGES_RNG = 7490:10000;
 IMG_PREFIX = 'w_';
 IMG_POSTFIX = '.jpg';
 
